@@ -1,4 +1,4 @@
-acs.glp<-function(directory,starting.year){
+acs.glp<-function(directory,starting.year=2005){
   setwd(directory)
   file_names<-list.files()
   n<-length(file_names)
@@ -79,11 +79,11 @@ stl.glp<-function(df,var){
   stl<-c(stl.wgt.14,stl.wgt.13,stl.wgt.12,stl.wgt.11,stl.wgt.10,stl.wgt.09,
          stl.wgt.08,stl.wgt.07,stl.wgt.06,stl.wgt.05)
   year<-2014:2005
-  FIPS<-vector(mode="character", length=10)
-  FIPS[1:10]<-"STLWT"
-  
-  stl.df<-cbind(FIPS,year,stl)
-  colnames(stl.df)<-c("FIPS","year",var)
+  FIPS<-rep(0,10)
+  current<-rep(1,10)
+  stl.df<-cbind(FIPS,year,stl,current)
+  colnames(stl.df)<-c("FIPS","year",var,"current")
+  stl.df<-as.data.frame(stl.df)
   stl.df
 }
   
@@ -91,14 +91,19 @@ stl.glp<-function(df,var){
 ##Graph data
 data.graph<-function(df,var,peers){
   df$var<-df[[var]]
-  if(peers==current){
+  df<-subset(df,FIPS!=29189&FIPS!=29510)
+  if(peers=="current"){
   df.wol<-subset(df,current==1 &FIPS!=21111)
   }
-  if(peers==baseline){
+  if(peers=="baseline"){
     df.wol<-subset(df,baseline==1 &FIPS!=21111)
   }
-  output<-aggregate(var.name, by=list(year),FUN=summary)
-  write.csv(output,file="output.csv")
+  output.wol<-aggregate(df.wol$var, by=list(df.wol$year),FUN=summary)
+  lville<-subset(df,FIPS==21111)
+  Louisville<-lville$var
+  output<-cbind(output.wol,Louisville)
+  file_name<-paste(var,".csv")
+  write.csv(output,file=file_name)
   output
 }
 
